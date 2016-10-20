@@ -23,6 +23,7 @@ import {
   connectionArgs,
   connectionDefinitions,
   connectionFromArray,
+  cursorForObjectInConnection,
   fromGlobalId,
   globalIdField,
   mutationWithClientMutationId,
@@ -33,8 +34,11 @@ import {
   // Import methods that your schema can use to interact with your database
   User,
   Widget,
+  addLemon,
   getUser,
   getViewer,
+  getLemon,
+  getLemons,
   getWidget,
   getWidgets,
 } from './database';
@@ -52,6 +56,8 @@ var {nodeInterface, nodeField} = nodeDefinitions(
       return getUser(id);
     } else if (type === 'Widget') {
       return getWidget(id);
+    } else if (type === 'Lemon') {
+      return getLemon(id);
     } else {
       return null;
     }
@@ -61,6 +67,8 @@ var {nodeInterface, nodeField} = nodeDefinitions(
       return userType;
     } else if (obj instanceof Widget)  {
       return widgetType;
+    } else if (obj instanceof Lemon)  {
+      return lemonType;
     } else {
       return null;
     }
@@ -81,6 +89,12 @@ var userType = new GraphQLObjectType({
       description: 'A person\'s collection of widgets',
       args: connectionArgs,
       resolve: (_, args) => connectionFromArray(getWidgets(), args),
+    },
+    lemons: {
+      type: lemonConnection,
+      description: 'A person\'s displayed list of lemons',
+      args: connectionArgs,
+      resolve: (_, args) => connectionFromArray(getLemons(), args),
     },
   }),
   interfaces: [nodeInterface],
@@ -105,6 +119,30 @@ var widgetType = new GraphQLObjectType({
 var {connectionType: widgetConnection} =
   connectionDefinitions({name: 'Widget', nodeType: widgetType});
 
+var lemonType = new GraphQLObjectType({
+  name: 'Lemon',
+  description: 'A member of iB',
+  fields: () => ({
+    id: globalIdField('Lemon'),
+    firstName: {
+      type: GraphQLString,
+      description: 'The first name of the Lemon',
+    },
+    lastName: {
+      type: GraphQLString,
+      description: 'The last name of the Lemon',
+    },
+  }),
+  interfaces: [nodeInterface],
+});
+
+/**
+ * Define your own connection types here
+ */
+var {connectionType: lemonConnection, edgeType: GraphQLLemonEdge} =
+  connectionDefinitions({name: 'Lemon', nodeType: lemonType});
+
+
 /**
  * This is the type that will be the root of our query,
  * and the entry point into our schema.
@@ -121,6 +159,37 @@ var queryType = new GraphQLObjectType({
   }),
 });
 
+
+const GraphQLAddLemonMutation = mutationWithClientMutationId({
+  name: 'AddLemon',
+  inputFields: {
+    firstName: { type: new GraphQLNonNull(GraphQLString) },
+    lastName: { type: new GraphQLNonNull(GraphQLString) },
+  },
+  outputFields: {
+    lemonEdge: {
+      type: GraphQLLemonEdge,
+      resolve: ({localLemonId}) => {
+        const lemon = getLemon(localLemonId);
+        return {
+          cursor: cursorForObjectInConnection(getLemons(), lemon),
+          node: lemon,
+        };
+      },
+    },
+    viewer: {
+      type: userType,
+      resolve: () => getViewer(),
+    },
+  },
+  mutateAndGetPayload: ({firstName, lastName}) => {
+    const localLemonId = addLemon(firstName, lastName);
+    return {localLemonId};
+  },
+});
+
+
+
 /**
  * This is the type that will be the root of our mutations,
  * and the entry point into performing writes in our schema.
@@ -129,6 +198,7 @@ var mutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
     // Add your own mutations here
+    addLemon: GraphQLAddLemonMutation,
   })
 });
 
@@ -139,5 +209,5 @@ var mutationType = new GraphQLObjectType({
 export var Schema = new GraphQLSchema({
   query: queryType,
   // Uncomment the following after adding some mutation fields:
-  // mutation: mutationType
+  mutation: mutationType
 });

@@ -1,7 +1,29 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import AddLemonMutation from '../mutations/AddLemonMutation';
+
 class App extends React.Component {
+  
+  state = {
+    firstName: '',
+    lastName: ''
+  };
+
+  addLemon = (e) => {
+    e.preventDefault();
+    var lemon = {
+      firstName: this.refs.firstName.value,
+      lastName: this.refs.lastName.value
+    };
+    lemon.viewer= this.props.viewer;
+
+    console.log('lemon', lemon);
+    this.setState(lemon, function(){
+      Relay.Store.commitUpdate(new AddLemonMutation(lemon));
+    });
+  }
+
   render() {
     return (
       <div>
@@ -11,6 +33,17 @@ class App extends React.Component {
             <li key={edge.node.id}>{edge.node.name} (ID: {edge.node.id})</li>
           )}
         </ul>
+        <h1>Lemons list</h1>
+        <ul>
+          {this.props.viewer.lemons.edges.map(edge =>
+            <li key={edge.node.id}>First Name: {edge.node.firstName} (Last Name: {edge.node.lastName})</li>
+          )}
+        </ul>
+        <form onSubmit={this.addLemon}>
+          <input type="text" ref="firstName" placeholder="First Name" />
+          <input type="text" ref="lastName" placeholder="Last Name" />
+          <input type="submit"/>
+        </form>
       </div>
     );
   }
@@ -20,6 +53,7 @@ export default Relay.createContainer(App, {
   fragments: {
     viewer: () => Relay.QL`
       fragment on User {
+        id,
         widgets(first: 10) {
           edges {
             node {
@@ -28,6 +62,16 @@ export default Relay.createContainer(App, {
             },
           },
         },
+        lemons(first: 20){
+          edges{
+            node{
+              id,
+              firstName,
+              lastName
+            }
+          }
+        },
+        ${AddLemonMutation.getFragment('viewer')},
       }
     `,
   },
