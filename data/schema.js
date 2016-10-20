@@ -197,7 +197,7 @@ const GraphQLDeleteLemonMutation = mutationWithClientMutationId({
   },
   outputFields: {
     deletedLemonId: {
-      type: GraphQLString,
+      type: GraphQLID,
       resolve: ({id}) => id,
     },
     viewer: {
@@ -206,8 +206,9 @@ const GraphQLDeleteLemonMutation = mutationWithClientMutationId({
     },
   },
   mutateAndGetPayload: ({id}) => {
-    // const localLemonId = fromGlobalId(id).id;
-    deleteLemon(id);
+    const localLemonId = fromGlobalId(id).id;
+    console.log('mutateAndGetPayload', localLemonId);
+    deleteLemon(localLemonId);
     return {id};
   },
 });

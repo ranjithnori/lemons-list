@@ -49,7 +49,7 @@ module.exports = {
     const lemon = new Lemon();
     lemon.firstName = firstName;
     lemon.lastName = lastName;
-    lemon.id = lemons.length;
+    lemon.id = String(lemons.length);
     lemons.push(lemon);
     return lemon.id;
   },
@@ -61,13 +61,17 @@ module.exports = {
   getLemons: () => lemons,
   deleteLemon: (id) => {
     console.log('database deleteLemon', id);
-    let lemon = lemons.filter(lemon => lemon.id === id)[0];
+    let lemon = lemons.filter(lemon => {
+      // console.log('lemon.id===id', typeof lemon.id, typeof id);
+      return lemon.id === id;
+    })[0];
+    // console.log('lemon object that\'s to be deleted', lemon);
     let indexOfLemon = lemons.indexOf(lemon);
-    console.log('lemons list', lemons);
+    // console.log('lemons list and index',lemons,indexOfLemon);
     if (indexOfLemon !== -1) {
       lemons.splice(indexOfLemon, 1);
     }
-    console.log('lemons splced list', lemons);
+    // console.log('lemons splced list', lemons, id);
     return id;
   },
   Lemon,

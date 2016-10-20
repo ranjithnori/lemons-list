@@ -12,9 +12,9 @@ class App extends React.Component {
   };
 
   deleteLemon = (id) => {
-    console.log('deleteLemon', id, this.props.viewer.id);
+    // console.log('deleteLemon', id, this.props.viewer.id);
     Relay.Store.commitUpdate(
-      new DeleteLemonMutation({id, viewer: this.props.viewer.id})
+      new DeleteLemonMutation({id, viewer: this.props.viewer})
     );    
   }
 
