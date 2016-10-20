@@ -36,6 +36,7 @@ import {
   Widget,
   addLemon,
   deleteLemon,
+  editLemon,
   getUser,
   getViewer,
   getLemon,
@@ -189,6 +190,40 @@ const GraphQLAddLemonMutation = mutationWithClientMutationId({
   },
 });
 
+const GraphQLEditLemonMutation = mutationWithClientMutationId({
+  name: 'EditLemon',
+  inputFields: {
+    id: { type: new GraphQLNonNull(GraphQLString) },
+    firstName: { type: new GraphQLNonNull(GraphQLString) },
+    lastName: { type: new GraphQLNonNull(GraphQLString) },
+  },
+  outputFields: {
+    lemonEdge: {
+      type: GraphQLLemonEdge,
+      resolve: ({localLemonId}) => {
+        const lemon = getLemon(localLemonId);
+        return {
+          cursor: cursorForObjectInConnection(getLemons(), lemon),
+          node: lemon,
+        };
+      },
+    },
+    viewer: {
+      type: userType,
+      resolve: () => getViewer(),
+    },
+  },
+  mutateAndGetPayload: ({id, firstName, lastName}) => {
+
+    const localLemonId = fromGlobalId(id).id;
+    editLemon(localLemonId, firstName, lastName);
+    
+    return {localLemonId};
+  },
+});
+
+
+
 
 const GraphQLDeleteLemonMutation = mutationWithClientMutationId({
   name: 'DeleteLemon',
@@ -223,6 +258,7 @@ var mutationType = new GraphQLObjectType({
   fields: () => ({
     // Add your own mutations here
     addLemon: GraphQLAddLemonMutation,
+    editLemon: GraphQLEditLemonMutation,
     deleteLemon: GraphQLDeleteLemonMutation
   })
 });

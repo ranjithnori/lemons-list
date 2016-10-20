@@ -3,12 +3,19 @@ import Relay from 'react-relay';
 
 import AddLemonMutation from '../mutations/AddLemonMutation';
 import DeleteLemonMutation from '../mutations/DeleteLemonMutation';
+import EditLemonMutation from '../mutations/EditLemonMutation';
 
 class App extends React.Component {
   
   state = {
     firstName: '',
-    lastName: ''
+    lastName: '',
+    node : {
+      id: '',
+      firstName: '',
+      lastName: ''
+    },
+    isEditing: false
   };
 
   deleteLemon = (id) => {
@@ -32,6 +39,26 @@ class App extends React.Component {
     });
   }
 
+  setEditingLemon = (node) => {
+    console.log('setEditingLemon', node);
+    this.setState({node, isEditing: true});
+  }
+
+  editLemon = (e) => {
+    e.preventDefault();
+    this.setState({isEditing: false});
+    var editedLemon = {
+      id: this.state.node.id,
+      firstName: this.refs.editfirstName.value==='' ? this.state.node.firstName
+      : this.refs.editfirstName.value,
+      lastName: this.refs.editlastName.value==='' ? this.state.node.lastName
+      : this.refs.editlastName.value
+    };
+    editedLemon.viewer= this.props.viewer;
+    console.log('editLemon', editedLemon);
+    Relay.Store.commitUpdate(new EditLemonMutation(editedLemon));
+  }
+
   render() {
     return (
       <div>
@@ -49,6 +76,9 @@ class App extends React.Component {
               <button onClick={() => {
                 this.deleteLemon(edge.node.id)
               }}>Delete</button>
+              <button onClick={() => {
+                this.setEditingLemon(edge.node)
+              }}>Edit</button>
             </li>
           )}
         </ul>
@@ -57,6 +87,15 @@ class App extends React.Component {
           <input type="text" ref="lastName" placeholder="Last Name" />
           <input type="submit"/>
         </form>
+        {
+          this.state.isEditing ?
+          <form onSubmit={this.editLemon}> 
+            <input type="text" ref="editfirstName" placeholder={this.state.node.firstName} />
+            <input type="text" ref="editlastName" placeholder={this.state.node.lastName} />
+            <input type="submit"/>
+          </form> : null
+        }
+
       </div>
     );
   }
@@ -86,6 +125,7 @@ export default Relay.createContainer(App, {
           }
         },
         ${AddLemonMutation.getFragment('viewer')},
+        ${EditLemonMutation.getFragment('viewer')},
         ${DeleteLemonMutation.getFragment('viewer')},
       }
     `,

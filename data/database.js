@@ -53,6 +53,16 @@ module.exports = {
     lemons.push(lemon);
     return lemon.id;
   },
+  editLemon: (id, firstName, lastName) => {
+    let lemon = lemons.filter(lemon => {
+      // console.log('lemon.id===id', typeof lemon.id, typeof id);
+      return lemon.id === id;
+    })[0];
+
+    lemon.firstName = firstName;
+    lemon.lastName = lastName;
+    return lemon.id;
+  },
   getUser: (id) => id === viewer.id ? viewer : null,
   getViewer: () => viewer,
   getWidget: (id) => widgets.find(w => w.id === id),
