@@ -2,17 +2,20 @@ import Relay from 'react-relay';
 
 export default class DeleteLemonMutation extends Relay.Mutation {
   static fragments = {
-    lemon: () => Relay.QL`
-      fragment on Lemon {
-        id,
-      }
-    `,
     viewer: () => Relay.QL`
       fragment on User {
         id,
+        lemons(first: 20){
+          edges{
+            node{
+              id
+            }
+          }
+        },
       }
     `,
   };
+  
   getMutation() {
     console.log('getMutation',  this.props);
     return Relay.QL`mutation{deleteLemon}`;
@@ -25,6 +28,7 @@ export default class DeleteLemonMutation extends Relay.Mutation {
       }
     `;
   }
+  
   getConfigs() {
     return [{
       type: 'NODE_DELETE',
@@ -34,15 +38,16 @@ export default class DeleteLemonMutation extends Relay.Mutation {
       deletedIDFieldName: 'deletedLemonId',
     }];
   }
-  
+
   getVariables() {
     return {
-      id: this.props.id,
+      id: this.props.lemon.id,
     };
   }
+
   // getOptimisticResponse() {
   //   return {
-  //     deletedLemonId: this.props.id,
+  //     deletedLemonId: this.props.lemon.id,
   //     viewer: {id: this.props.viewer.id},
   //   };
   // }

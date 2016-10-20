@@ -14,7 +14,7 @@ class App extends React.Component {
   deleteLemon = (id) => {
     // console.log('deleteLemon', id, this.props.viewer.id);
     Relay.Store.commitUpdate(
-      new DeleteLemonMutation({id, viewer: this.props.viewer})
+      new DeleteLemonMutation({lemon: {id}, viewer: this.props.viewer})
     );    
   }
 
@@ -64,6 +64,7 @@ class App extends React.Component {
 
 export default Relay.createContainer(App, {
   fragments: {
+
     viewer: () => Relay.QL`
       fragment on User {
         id,
