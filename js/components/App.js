@@ -2,6 +2,7 @@ import React from 'react';
 import Relay from 'react-relay';
 
 import AddLemonMutation from '../mutations/AddLemonMutation';
+import DeleteLemonMutation from '../mutations/DeleteLemonMutation';
 
 class App extends React.Component {
   
@@ -9,6 +10,13 @@ class App extends React.Component {
     firstName: '',
     lastName: ''
   };
+
+  deleteLemon = (id) => {
+    console.log('deleteLemon', id, this.props.viewer.id);
+    Relay.Store.commitUpdate(
+      new DeleteLemonMutation({id, viewer: this.props.viewer.id})
+    );    
+  }
 
   addLemon = (e) => {
     e.preventDefault();
@@ -36,7 +44,12 @@ class App extends React.Component {
         <h1>Lemons list</h1>
         <ul>
           {this.props.viewer.lemons.edges.map(edge =>
-            <li key={edge.node.id}>First Name: {edge.node.firstName} (Last Name: {edge.node.lastName})</li>
+            <li key={edge.node.id}>
+              First Name: {edge.node.firstName} (Last Name: {edge.node.lastName})
+              <button onClick={() => {
+                this.deleteLemon(edge.node.id)
+              }}>Delete</button>
+            </li>
           )}
         </ul>
         <form onSubmit={this.addLemon}>
@@ -72,6 +85,7 @@ export default Relay.createContainer(App, {
           }
         },
         ${AddLemonMutation.getFragment('viewer')},
+        ${DeleteLemonMutation.getFragment('viewer')},
       }
     `,
   },

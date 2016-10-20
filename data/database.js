@@ -59,6 +59,17 @@ module.exports = {
   getWidgets: () => widgets,
   getLemon: (id) => lemons.find(l => l.id === id),
   getLemons: () => lemons,
+  deleteLemon: (id) => {
+    console.log('database deleteLemon', id);
+    let lemon = lemons.filter(lemon => lemon.id === id)[0];
+    let indexOfLemon = lemons.indexOf(lemon);
+    console.log('lemons list', lemons);
+    if (indexOfLemon !== -1) {
+      lemons.splice(indexOfLemon, 1);
+    }
+    console.log('lemons splced list', lemons);
+    return id;
+  },
   Lemon,
   User,
   Widget,
